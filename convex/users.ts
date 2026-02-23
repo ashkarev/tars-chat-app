@@ -33,21 +33,22 @@ export const store = mutation({
   },
 });
 
-
 export const getCurrentUser = query({
-  args: {
-    clerkId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-      .first();
+  args: {},
+  handler: async (ctx) => {
+    // 👇 THIS LINE is where ctx.auth.getUserIdentity is used
+    const identity = await ctx.auth.getUserIdentity();
 
-    return user ?? null;
+    if (!identity) return null;
+
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) =>
+        q.eq("clerkId", identity.subject)
+      )
+      .unique();
   },
 });
-
 // 👥 get all users except current
 
 export const getAllUsers = query({

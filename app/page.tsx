@@ -5,50 +5,79 @@ import {
   SignedOut,
   SignInButton,
   UserButton,
+  useUser,
 } from "@clerk/nextjs";
-import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { useEffect, useCallback, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 
-import UserList from "@/Components/UserList";
-import ChatBox from "@/Components/Chatbot";   // 👈 add this
+import ChatBox from "@/Components/Chatbot";
+import ConversationLists from "@/Components/ConversationLists";
 
 export default function Home() {
   const [conversationId, setConversationId] =
     useState<Id<"conversations"> | null>(null);
 
   const { user, isLoaded } = useUser();
+
+  // 🔵 store user
   const storeUser = useMutation(api.users.store);
 
-const syncUser = useCallback(async () => {
-  if (!user) return;
+  // 🔵 get current convex user
+  const currentUser = useQuery(api.users.getCurrentUser);
 
-  console.log("Storing user:", user.id, user.fullName); // 👈 ADD THIS LINE
+  // 🔵 mark messages as read
+  const markAsRead = useMutation(api.messages.markAsRead);
 
-  try {
+  // 🔵 sync user to convex
+  const syncUser = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      await storeUser({
+        clerkId: user.id,
+        name: user.fullName ?? "",
+        email: user.primaryEmailAddress?.emailAddress ?? "",
+      });
+    } catch (err) {
+      console.error("Error storing user:", err);
+    }
+  }, [user, storeUser]);
+
+ useEffect(() => {
+  const run = async () => {
+    if (!isLoaded || !user) return;
+
     await storeUser({
       clerkId: user.id,
       name: user.fullName ?? "",
       email: user.primaryEmailAddress?.emailAddress ?? "",
     });
-  } catch (err) {
-    console.error("Error storing user:", err);
-  }
-}, [user, storeUser]);
-  useEffect(() => {
-    if (isLoaded && user) {
-      syncUser();
+  };
+
+  run();
+}, [isLoaded, user, storeUser]);
+
+  // 🔥 THIS IS THE FIX
+  const handleSelectConversation = async (id: Id<"conversations">) => {
+    setConversationId(id);
+
+    // mark messages as read
+    if (currentUser) {
+      await markAsRead({
+        conversationId: id,
+        userId: currentUser._id,
+      });
     }
-  }, [isLoaded, user, syncUser]);
+  };
 
   return (
     <div className="h-screen flex">
       {/* LEFT SIDEBAR */}
       <div className="w-1/3 border-r p-4">
         <div className="flex items-center justify-between mb-4">
-          <p className="font-semibold">Users</p>
+          <p className="font-semibold">Chats</p>
 
           <SignedOut>
             <SignInButton mode="modal">
@@ -63,8 +92,10 @@ const syncUser = useCallback(async () => {
           </SignedIn>
         </div>
 
-        {/* pass setter to UserList */}
-        <UserList onSelectConversation={setConversationId} />
+        {/* 🔥 IMPORTANT: use handleSelectConversation */}
+        <ConversationLists
+          onSelectConversation={handleSelectConversation}
+        />
       </div>
 
       {/* RIGHT CHAT AREA */}

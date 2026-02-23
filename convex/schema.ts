@@ -2,6 +2,11 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  typing: defineTable({
+  conversationId: v.id("conversations"),
+  userId: v.id("users"),
+  isTyping: v.boolean(),
+}),
   users: defineTable({
     clerkId: v.string(),
     name: v.string(),
@@ -13,10 +18,11 @@ export default defineSchema({
   }),
 
 
-  messages: defineTable({
-    conversationId: v.id("conversations"),
-    sender: v.id("users"),
-    body: v.string(),
-    createdAt: v.number(),
-  }).index("by_conversation", ["conversationId"]),
+ messages: defineTable({
+  conversationId: v.id("conversations"),
+  sender: v.id("users"),
+  body: v.string(),
+  createdAt: v.number(),
+  readBy: v.optional(v.array(v.id("users"))),
+}).index("by_conversation", ["conversationId"]),
 });

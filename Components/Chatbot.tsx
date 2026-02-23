@@ -4,24 +4,24 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useUser } from "@clerk/nextjs";   // ✅ add this
 
 export default function ChatBox({
   conversationId,
 }: {
   conversationId: Id<"conversations">;
 }) {
-  const { user } = useUser();   // ✅ get clerk user
-
+  // 🔵 messages
   const messages = useQuery(api.messages.getMessages, { conversationId });
 
-  // ✅ pass clerkId
-  const currentUser = useQuery(
-    api.users.getCurrentUser,
-    user ? { clerkId: user.id } : "skip"
-  );
+  // 🔵 current logged in convex user (NO clerkId needed)
+ const currentUser = useQuery(api.users.getCurrentUser);
 
+  // 🔵 typing
+  const typingUsers = useQuery(api.typing.getTyping, { conversationId });
+
+  // 🔵 mutations
   const sendMessage = useMutation(api.messages.send);
+  const setTyping = useMutation(api.typing.setTyping);
 
   const [text, setText] = useState("");
 
@@ -30,11 +30,12 @@ export default function ChatBox({
     return <p className="p-4">Loading messages...</p>;
   }
 
-  // ❌ no user found
+  // ❌ no user
   if (currentUser === null) {
     return <p className="p-4 text-red-500">User not found</p>;
   }
 
+  // 🔵 send message
   const handleSend = async () => {
     if (!text.trim()) return;
 
@@ -49,7 +50,7 @@ export default function ChatBox({
 
   return (
     <div className="h-full flex flex-col">
-      {/* messages */}
+      {/* messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
         {messages.length === 0 && (
           <p className="text-gray-400">No messages yet</p>
@@ -73,13 +74,41 @@ export default function ChatBox({
         })}
       </div>
 
-      {/* input */}
+      {/* typing indicator */}
+      {typingUsers &&
+        typingUsers
+          .filter((t) => t.userId !== currentUser._id)
+          .map((t) => (
+            <p key={t._id} className="text-sm text-gray-500 px-4 pb-2">
+              Typing...
+            </p>
+          ))}
+
+      {/* input box */}
       <div className="p-3 border-t flex gap-2">
         <input
           className="flex-1 border rounded px-3 py-2 outline-none"
           value={text}
-          onChange={(e) => setText(e.target.value)}
           placeholder="Type message..."
+          onChange={async (e) => {
+            setText(e.target.value);
+
+            // typing true
+            await setTyping({
+              conversationId,
+              userId: currentUser._id,
+              isTyping: true,
+            });
+
+            // auto stop typing after 2 sec
+            setTimeout(() => {
+              setTyping({
+                conversationId,
+                userId: currentUser._id,
+                isTyping: false,
+              });
+            }, 2000);
+          }}
         />
 
         <button

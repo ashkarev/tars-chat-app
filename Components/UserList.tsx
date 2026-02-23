@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useUser } from "@clerk/nextjs";   // ✅ added
 
 export default function UserList({
   onSelectConversation,
@@ -13,23 +12,18 @@ export default function UserList({
 }) {
   const [search, setSearch] = useState("");
 
-  // 🔥 get clerk user
-  const { user } = useUser();
-
-  // queries
+  // 🔵 get all users
   const users = useQuery(api.users.getAllUsers);
 
-  // 🔥 pass clerkId to Convex
-  const currentUser = useQuery(
-    api.users.getCurrentUser,
-    user ? { clerkId: user.id } : "skip"
-  );
+  // 🔵 get current logged in user (Convex auth)
+  const currentUser = useQuery(api.users.getCurrentUser);
 
+  // 🔵 mutation to create conversation
   const createConversation = useMutation(
     api.conversations.createOrGetConversation
   );
 
-  // loading
+  // ⏳ loading
   if (users === undefined || currentUser === undefined) {
     return <p className="p-4">Loading...</p>;
   }
@@ -42,9 +36,6 @@ export default function UserList({
   );
 
   const handleUserClick = async (otherUserId: Id<"users">) => {
-    console.log("USER CLICKED");
-    console.log("CURRENT USER =", currentUser);
-
     if (!currentUser) return;
 
     const convoId = await createConversation({
@@ -52,13 +43,12 @@ export default function UserList({
       user2: otherUserId,
     });
 
-    console.log("SUCCESS convoId =", convoId);
-
     onSelectConversation(convoId);
   };
 
   return (
     <div className="border p-4 h-full overflow-y-auto">
+      {/* search */}
       <input
         type="text"
         placeholder="Search users..."
