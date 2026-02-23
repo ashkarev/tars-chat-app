@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { useEffect, useCallback } from "react";
+import UserList from "@/Components/UserList";
 
 export default function Home() {
   const { user, isLoaded } = useUser();
@@ -34,8 +35,9 @@ export default function Home() {
     }
   }, [isLoaded, user, syncUser]);
 
-  return (
-    <main className="flex h-screen items-center justify-center gap-4">
+ return (
+  <div className="p-6 space-y-6">
+    <main className="flex items-center justify-center gap-4">
       <SignedOut>
         <SignInButton mode="modal">
           <button className="px-4 py-2 bg-blue-500 text-white rounded">
@@ -51,5 +53,9 @@ export default function Home() {
         </div>
       </SignedIn>
     </main>
-  );
+
+    
+    <UserList />
+  </div>
+);
 }
