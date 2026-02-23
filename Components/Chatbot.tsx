@@ -4,14 +4,23 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
+import { useUser } from "@clerk/nextjs";   // ✅ add this
 
 export default function ChatBox({
   conversationId,
 }: {
   conversationId: Id<"conversations">;
 }) {
+  const { user } = useUser();   // ✅ get clerk user
+
   const messages = useQuery(api.messages.getMessages, { conversationId });
-  const currentUser = useQuery(api.users.getCurrentUser);
+
+  // ✅ pass clerkId
+  const currentUser = useQuery(
+    api.users.getCurrentUser,
+    user ? { clerkId: user.id } : "skip"
+  );
+
   const sendMessage = useMutation(api.messages.send);
 
   const [text, setText] = useState("");
@@ -40,7 +49,6 @@ export default function ChatBox({
 
   return (
     <div className="h-full flex flex-col">
-
       {/* messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
         {messages.length === 0 && (

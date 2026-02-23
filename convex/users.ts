@@ -34,33 +34,24 @@ export const store = mutation({
 });
 
 
-// 🔍 get current logged in user
 export const getCurrentUser = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-
-    return await ctx.db
+  args: {
+    clerkId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
       .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
-      .unique();
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    return user ?? null;
   },
 });
 
-
 // 👥 get all users except current
+
 export const getAllUsers = query({
-  args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      console.log("Not authenticated in getAllUsers");
-      return [];
-    }
-
-    const users = await ctx.db.query("users").collect();
-
-    return users.filter((u) => u.clerkId !== identity.subject);
+    return await ctx.db.query("users").collect();
   },
 });

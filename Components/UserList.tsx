@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
+import { useUser } from "@clerk/nextjs";   // ✅ added
 
 export default function UserList({
   onSelectConversation,
@@ -12,44 +13,52 @@ export default function UserList({
 }) {
   const [search, setSearch] = useState("");
 
+  // 🔥 get clerk user
+  const { user } = useUser();
+
+  // queries
   const users = useQuery(api.users.getAllUsers);
-  const currentUser = useQuery(api.users.getCurrentUser);
+
+  // 🔥 pass clerkId to Convex
+  const currentUser = useQuery(
+    api.users.getCurrentUser,
+    user ? { clerkId: user.id } : "skip"
+  );
+
   const createConversation = useMutation(
     api.conversations.createOrGetConversation
   );
 
-  // ⏳ loading state
-  if (!users || currentUser === undefined) return <p>Loading...</p>;
+  // loading
+  if (users === undefined || currentUser === undefined) {
+    return <p className="p-4">Loading...</p>;
+  }
 
-  // 🔍 filter users
+  // filter users
   const filteredUsers = users.filter((u) =>
     (u.name || u.email || "")
       .toLowerCase()
       .includes(search.toLowerCase())
   );
 
-  // 👉 handle click user
   const handleUserClick = async (otherUserId: Id<"users">) => {
+    console.log("USER CLICKED");
+    console.log("CURRENT USER =", currentUser);
+
     if (!currentUser) return;
 
-    try {
-      const convoId = await createConversation({
-        user1: currentUser._id,
-        user2: otherUserId,
-      });
+    const convoId = await createConversation({
+      user1: currentUser._id,
+      user2: otherUserId,
+    });
 
-      console.log("Conversation created/opened:", convoId);
+    console.log("SUCCESS convoId =", convoId);
 
-      // ✅ send conversation id to parent (Home)
-      onSelectConversation(convoId);
-    } catch (err) {
-      console.error("Error creating conversation:", err);
-    }
+    onSelectConversation(convoId);
   };
 
   return (
     <div className="border p-4 h-full overflow-y-auto">
-      {/* 🔍 Search */}
       <input
         type="text"
         placeholder="Search users..."
@@ -60,7 +69,6 @@ export default function UserList({
 
       <h3 className="font-semibold mb-2">Users</h3>
 
-      {/* 👥 Users List */}
       {filteredUsers.length === 0 ? (
         <p className="text-gray-500">No users found</p>
       ) : (

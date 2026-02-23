@@ -6,23 +6,21 @@ export const createOrGetConversation = mutation({
     user1: v.id("users"),
     user2: v.id("users"),
   },
-  handler: async (ctx, args) => {
-    // get all conversations
-    const conversations = await ctx.db.query("conversations").collect();
+handler: async (ctx, args) => {
+  // get only limited conversations (safe)
+  const conversations = await ctx.db.query("conversations").take(50);
 
-    // check if conversation already exists
-    const existing = conversations.find((c) =>
-      c.members.includes(args.user1) &&
-      c.members.includes(args.user2)
-    );
+  const existing = conversations.find((c) =>
+    c.members.some((m) => m.toString() === args.user1.toString()) &&
+    c.members.some((m) => m.toString() === args.user2.toString())
+  );
 
-    if (existing) {
-      return existing._id;
-    }
+  if (existing) {
+    return existing._id;
+  }
 
-    // else create new
-    return await ctx.db.insert("conversations", {
-      members: [args.user1, args.user2],
-    });
-  },
+  return await ctx.db.insert("conversations", {
+    members: [args.user1, args.user2],
+  });
+}
 });
