@@ -7,6 +7,7 @@ export const store = mutation({
     clerkId: v.string(),
     name: v.string(),
     email: v.string(),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // check if already exists
@@ -20,6 +21,7 @@ export const store = mutation({
       await ctx.db.patch(existing._id, {
         name: args.name,
         email: args.email,
+        imageUrl: args.imageUrl,
       });
       return existing._id;
     }
@@ -29,6 +31,7 @@ export const store = mutation({
       clerkId: args.clerkId,
       name: args.name,
       email: args.email,
+      imageUrl: args.imageUrl,
     });
   },
 });
@@ -54,5 +57,13 @@ export const getCurrentUser = query({
 export const getAllUsers = query({
   handler: async (ctx) => {
     return await ctx.db.query("users").collect();
+  },
+});
+
+// 🟢 update presence
+export const updatePresence = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, { lastSeen: Date.now() });
   },
 });

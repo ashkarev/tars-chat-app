@@ -19,6 +19,8 @@ export const getUserConversations = query({
 
     const results = [];
 
+    let totalUnreadCount = 0;
+
     for (const convo of userConvos) {
       // find other user in that conversation
       const otherUserId = (convo.members ?? []).find(
@@ -45,6 +47,8 @@ export const getUserConversations = query({
         );
       }).length;
 
+      totalUnreadCount += unreadCount;
+
       results.push({
         ...convo,
         otherUser,
@@ -53,7 +57,37 @@ export const getUserConversations = query({
       });
     }
 
-    return results;
+    return {
+      conversations: results,
+      totalUnreadCount,
+    };
+  },
+});
+
+/**
+ * 🔹 Get a single conversation with other user info
+ */
+export const getConversation = query({
+  args: {
+    conversationId: v.id("conversations"),
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const convo = await ctx.db.get(args.conversationId);
+    if (!convo) return null;
+
+    const otherUserId = (convo.members ?? []).find(
+      (m) => m.toString() !== args.userId.toString()
+    );
+
+    const otherUser = otherUserId
+      ? await ctx.db.get(otherUserId)
+      : null;
+
+    return {
+      ...convo,
+      otherUser,
+    };
   },
 });
 
@@ -86,5 +120,24 @@ export const createOrGetConversation = mutation({
     });
 
     return newConvo;
+  },
+});
+
+/**
+ * 🔹 Create a group conversation
+ */
+export const createGroup = mutation({
+  args: {
+    members: v.array(v.id("users")),
+    name: v.string(),
+    admin: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("conversations", {
+      members: args.members,
+      name: args.name,
+      isGroup: true,
+      admin: args.admin,
+    });
   },
 });
