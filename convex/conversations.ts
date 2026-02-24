@@ -2,7 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
- * 🔹 Get all conversations for logged in user
+ *  Get all conversations for logged in user
  */
 export const getUserConversations = query({
   args: {
@@ -31,7 +31,7 @@ export const getUserConversations = query({
         ? await ctx.db.get(otherUserId)
         : null;
 
-      // get last message (🟠 Temporary lax query)
+      // get last message ( Temporary lax query)
       const allMessages = await ctx.db.query("messages").collect();
       const convoMessages = allMessages
         .filter((m) => m.conversationId === convo._id)
@@ -39,7 +39,7 @@ export const getUserConversations = query({
 
       const lastMessage = convoMessages[0] ?? null;
 
-      // 🔥 unread count (🟠 Temporary lax query)
+      //  unread count ( Temporary lax query)
       const unreadCount = convoMessages.filter((m) => {
         return (
           m.sender !== args.userId &&
@@ -65,7 +65,7 @@ export const getUserConversations = query({
 });
 
 /**
- * 🔹 Get a single conversation with other user info
+ *  Get a single conversation with other user info
  */
 export const getConversation = query({
   args: {
@@ -93,7 +93,7 @@ export const getConversation = query({
 
 
 /**
- * 🔹 Create or get existing conversation
+ *  Create or get existing conversation
  */
 export const createOrGetConversation = mutation({
   args: {
@@ -124,7 +124,7 @@ export const createOrGetConversation = mutation({
 });
 
 /**
- * 🔹 Create a group conversation
+ *  Create a group conversation
  */
 export const createGroup = mutation({
   args: {

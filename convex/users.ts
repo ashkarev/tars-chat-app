@@ -1,7 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// 🔐 store user from clerk
+//  store user from clerk
 export const store = mutation({
   args: {
     clerkId: v.string(),
@@ -52,7 +52,7 @@ export const getCurrentUser = query({
       .unique();
   },
 });
-// 👥 get all users except current
+//  get all users except current
 
 export const getAllUsers = query({
   handler: async (ctx) => {
@@ -60,7 +60,7 @@ export const getAllUsers = query({
   },
 });
 
-// 🟢 update presence
+//  update presence
 export const updatePresence = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export default defineSchema({
 
-  // 🔵 typing indicator
+  //  typing indicator
   typing: defineTable({
     conversationId: v.id("conversations"),
     userId: v.id("users"),
@@ -12,7 +12,7 @@ export default defineSchema({
     .index("by_conversation", ["conversationId"])
     .index("by_conversation_user", ["conversationId", "userId"]),
 
-  // 🔵 users
+  //  users
   users: defineTable({
     clerkId: v.string(),
     name: v.string(),
@@ -21,7 +21,7 @@ export default defineSchema({
     lastSeen: v.optional(v.number()),
   }).index("by_clerkId", ["clerkId"]),
 
-  // 🔵 conversations
+  //  conversations
   conversations: defineTable({
     members: v.optional(v.array(v.id("users"))),
     name: v.optional(v.string()),
@@ -29,7 +29,7 @@ export default defineSchema({
     admin: v.optional(v.id("users")),
   }),
 
-  // 🔵 messages (✔✔ delivered + seen system)
+  //  messages (✔✔ delivered + seen system)
   messages: defineTable(v.any()),
 
 });

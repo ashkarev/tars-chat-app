@@ -67,106 +67,103 @@ export default function Home() {
   return (
     <main className="h-screen w-full flex overflow-hidden">
       <SignedOut>
-        {/* LANDING PAGE UI */}
-        <div className="flex-1 flex flex-col md:flex-row h-full">
-          {/* Left Side: Branding */}
-          <div className="md:w-1/2 h-1/2 md:h-full bg-gradient-to-tr from-blue-700 via-blue-600 to-blue-400 p-12 flex flex-col justify-center text-white relative overflow-hidden">
-            <div className="absolute top-20 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-20 -right-10 w-80 h-80 bg-blue-300/10 rounded-full blur-3xl" />
-
-            <div className="max-w-md relative z-10">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl mb-8 transform -rotate-3 transition-transform hover:rotate-0">
-                <span className="text-blue-600 font-black text-3xl italic tracking-tighter">T</span>
+        {/* PREMIUM AUTH LANDING PAGE */}
+        <div className="flex-1 flex items-center justify-center p-6 bg-linear-to-br from-slate-50 via-slate-50 to-indigo-50/30">
+          <div className="w-full max-w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Logo Section */}
+            <div className="flex flex-col items-center mb-10">
+              <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-violet-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-100 mb-6 rotate-3">
+                <span className="text-white font-black text-3xl italic tracking-tighter">T</span>
               </div>
-              <h1 className="text-5xl font-black mb-4 tracking-tight leading-tight">
-                TARS
-              </h1>
-              <p className="text-xl font-medium text-blue-100 mb-2">
-                Real-time messaging made simple.
-              </p>
-              <p className="text-blue-200/80 leading-relaxed max-w-sm">
-                Connect with anyone, anywhere. Instant communication with advanced group features, media sharing, and real-time presence.
-              </p>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">TARS</h1>
+              <p className="text-slate-500 font-medium mt-1">Modern messaging for individuals</p>
             </div>
-          </div>
 
-          {/* Right Side: Auth Card */}
-          <div className="md:w-1/2 h-1/2 md:h-full bg-slate-50 flex items-center justify-center p-8">
-            <div className="bg-white p-8 rounded-[2rem] shadow-2xl shadow-blue-200/50 w-full max-w-sm border border-slate-100">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h2>
-                <p className="text-sm text-slate-500">Please sign in to continue to TARS</p>
+            {/* Auth Card */}
+            <div className="bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50">
+              <div className="space-y-4">
+                <SignInButton mode="modal">
+                  <button className="w-full h-14 bg-linear-to-r from-indigo-600 to-violet-600 hover:saturate-150 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="w-full h-14 bg-white hover:bg-slate-50 text-slate-900 font-semibold rounded-2xl border border-slate-200 transition-all active:scale-[0.98]">
+                    Create Account
+                  </button>
+                </SignUpButton>
               </div>
 
-              <SignInButton mode="modal">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] mb-4">
-                  Sign In
-                </button>
-              </SignInButton>
-
-              <SignUpButton mode="modal">
-                <button className="w-full bg-white hover:bg-slate-50 text-blue-600 font-bold py-4 rounded-2xl border-2 border-slate-100 transition-all active:scale-[0.98]">
-                  Create Account
-                </button>
-              </SignUpButton>
-
-              <p className="text-center mt-8 text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-                Student Project • 2026
-              </p>
+              <div className="mt-10 flex items-center gap-4 text-slate-300">
+                <div className="h-px flex-1 bg-slate-100" />
+                <span className="text-[10px] uppercase font-black tracking-widest whitespace-nowrap">Production Ready</span>
+                <div className="h-px flex-1 bg-slate-100" />
+              </div>
             </div>
+
+            <p className="text-center mt-8 text-xs text-slate-400 font-medium italic">
+              Experience the future of real-time communication.
+            </p>
           </div>
         </div>
       </SignedOut>
 
       <SignedIn>
-        {/* MAIN APP UI (3 columns) */}
-        <Sidebar aria-label="Main Navigation" />
-
-        {/* Column 2: Chat List Panel */}
-        <div className="w-[380px] h-full flex flex-col bg-white border-r border-slate-100 shadow-sm relative group">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-black tracking-tight text-slate-900">Messages</h2>
-              <button
-                onClick={() => setIsCreatingGroup(true)}
-                className="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
-                title="Create Group"
-              >
-                <span className="text-xl font-bold">+</span>
-              </button>
-            </div>
+        {/* PREMIUM MAIN APP (3 columns) */}
+        <div className="h-full flex w-full">
+          {/* Column 1: Sidebar (Workspace) */}
+          <div className={`${conversationId ? "hidden lg:flex" : "flex"}`}>
+            <Sidebar aria-label="Main Navigation" />
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            <ConversationLists onSelectConversation={handleSelectConversation} />
-          </div>
-
-          {isCreatingGroup && (
-            <CreateGroupModal
-              onClose={() => setIsCreatingGroup(false)}
-              onGroupCreated={(id) => {
-                handleSelectConversation(id);
-                setIsCreatingGroup(false);
-              }}
-            />
-          )}
-        </div>
-
-        {/* Column 3: Chat Area */}
-        <div className="flex-1 flex flex-col h-full bg-slate-50">
-          {conversationId ? (
-            <ChatBox conversationId={conversationId} />
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-              <div className="w-32 h-32 bg-white rounded-[2.5rem] shadow-xl flex items-center justify-center mb-8 rotate-3">
-                <span className="text-6xl animate-bounce">💬</span>
+          {/* Column 2: Chat List Panel (300px) */}
+          <div className={`${conversationId ? "hidden md:flex" : "flex"} w-full md:w-[300px] h-full flex-col bg-white border-r border-slate-100 relative group`}>
+            <div className="p-6 pb-2 md:pb-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold tracking-tight text-slate-900">Chats</h2>
+                <button
+                  onClick={() => setIsCreatingGroup(true)}
+                  className="w-9 h-9 flex items-center justify-center bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
+                  title="New Conversation"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Select a conversation</h3>
-              <p className="text-slate-500 max-w-[280px]">
-                Choose a chat from the left to start messaging. Your chats are encrypted and private.
-              </p>
             </div>
-          )}
+
+            <div className="flex-1 overflow-hidden">
+              <ConversationLists onSelectConversation={handleSelectConversation} selectedId={conversationId} />
+            </div>
+
+            {isCreatingGroup && (
+              <CreateGroupModal
+                onClose={() => setIsCreatingGroup(false)}
+                onGroupCreated={(id) => {
+                  handleSelectConversation(id);
+                  setIsCreatingGroup(false);
+                }}
+              />
+            )}
+          </div>
+
+          {/* Column 3: Chat Area */}
+          <div className={`${conversationId ? "flex" : "hidden md:flex"} flex-1 flex flex-col h-full bg-[#F8FAFC]`}>
+            {conversationId ? (
+              <ChatBox conversationId={conversationId} onBack={() => setConversationId(null)} />
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-700">
+                <div className="w-24 h-24 bg-white rounded-3xl shadow-xl shadow-slate-200/50 flex items-center justify-center mb-10 rotate-3 transition-transform hover:rotate-0">
+                  <span className="text-5xl">🪄</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Select a conversation</h3>
+                <p className="text-slate-400 max-w-[260px] text-sm font-medium">
+                  Pick a chat to start messaging or create a new group.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </SignedIn>
     </main>

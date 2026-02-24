@@ -29,7 +29,7 @@ export const send = mutation({
   },
 });
 
-// 🔵 edit message
+//  edit message
 export const update = mutation({
   args: {
     messageId: v.id("messages"),
@@ -49,7 +49,7 @@ export const update = mutation({
   },
 });
 
-// 🔵 delete message
+//  delete message
 export const remove = mutation({
   args: {
     messageId: v.id("messages"),
@@ -65,13 +65,13 @@ export const remove = mutation({
   },
 });
 
-// 🔵 get messages
+//  get messages
 export const getMessages = query({
   args: {
     conversationId: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    // 🟠 Temporary lax query without index
+    //  Temporary lax query without index
     const allMessages = await ctx.db.query("messages").collect();
     const messages = allMessages.filter(
       (m) => m.conversationId === args.conversationId
@@ -99,14 +99,14 @@ export const getMessages = query({
   },
 });
 
-// 🔵 mark messages as seen
+//  mark messages as seen
 export const markAsSeen = mutation({
   args: {
     conversationId: v.id("conversations"),
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    // 1. query ALL messages in the conversation (🟠 Temporary lax query)
+    // 1. query ALL messages in the conversation ( Temporary lax query)
     const allMessages = await ctx.db.query("messages").collect();
     const messages = allMessages.filter(
       (m) => m.conversationId === args.conversationId

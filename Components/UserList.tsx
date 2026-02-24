@@ -12,18 +12,18 @@ export default function UserList({
 }) {
   const [search, setSearch] = useState("");
 
-  // 🔵 get all users
+  //  get all users
   const users = useQuery(api.users.getAllUsers);
 
-  // 🔵 get current logged in user (Convex auth)
+  // get current logged in user (Convex auth)
   const currentUser = useQuery(api.users.getCurrentUser);
 
-  // 🔵 mutation to create conversation
+  //  mutation to create conversation
   const createConversation = useMutation(
     api.conversations.createOrGetConversation
   );
 
-  // ⏳ loading
+  //  loading
   if (users === undefined || currentUser === undefined) {
     return <p className="p-4">Loading...</p>;
   }
