@@ -9,14 +9,18 @@ export const send = mutation({
     body: v.string(),
   },
   handler: async (ctx, args) => {
+    const convo = await ctx.db.get(args.conversationId);
+    if (!convo) throw new Error("Conversation not found");
+
     return await ctx.db.insert("messages", {
       conversationId: args.conversationId,
       sender: args.sender,
       body: args.body,
       createdAt: Date.now(),
 
-      // 👇 important fix
-      readBy: [args.sender],
+      // ✔ initial state
+      deliveredTo: [args.sender],
+      seenBy: [args.sender],
     });
   },
 });
@@ -27,38 +31,40 @@ export const getMessages = query({
     conversationId: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("messages")
-      .withIndex("by_conversation", (q) =>
-        q.eq("conversationId", args.conversationId)
-      )
-      .collect();
+    // 🟠 Temporary lax query without index
+    const allMessages = await ctx.db.query("messages").collect();
+    return allMessages.filter((m) => m.conversationId === args.conversationId);
   },
 });
 
-// 🔥 mark messages as read (SAFE for old data)
-export const markAsRead = mutation({
+// 🔵 mark messages as seen
+export const markAsSeen = mutation({
   args: {
     conversationId: v.id("conversations"),
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    const messages = await ctx.db
-      .query("messages")
-      .withIndex("by_conversation", (q) =>
-        q.eq("conversationId", args.conversationId)
-      )
-      .collect();
+    // 1. query ALL messages in the conversation (🟠 Temporary lax query)
+    const allMessages = await ctx.db.query("messages").collect();
+    const messages = allMessages.filter(
+      (m) => m.conversationId === args.conversationId
+    );
 
-    for (const m of messages) {
-      const readBy = m.readBy ?? []; // 👈 SAFE fallback
+    for (const msg of messages) {
+      const deliveredTo = msg.deliveredTo ?? [];
+      const seenBy = msg.seenBy ?? [];
 
-      if (
-        m.sender.toString() !== args.userId.toString() &&
-        !readBy.includes(args.userId)
-      ) {
-        await ctx.db.patch(m._id, {
-          readBy: [...readBy, args.userId],
+      const needsDelivered = !deliveredTo.includes(args.userId);
+      const needsSeen = !seenBy.includes(args.userId);
+
+      if (needsDelivered || needsSeen) {
+        await ctx.db.patch(msg._id, {
+          ...(needsDelivered && {
+            deliveredTo: [...deliveredTo, args.userId],
+          }),
+          ...(needsSeen && {
+            seenBy: [...seenBy, args.userId],
+          }),
         });
       }
     }

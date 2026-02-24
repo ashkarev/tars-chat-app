@@ -2,27 +2,29 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+
+  // 🔵 typing indicator
   typing: defineTable({
-  conversationId: v.id("conversations"),
-  userId: v.id("users"),
-  isTyping: v.boolean(),
-}),
+    conversationId: v.id("conversations"),
+    userId: v.id("users"),
+    isTyping: v.boolean(),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_conversation_user", ["conversationId", "userId"]),
+
+  // 🔵 users
   users: defineTable({
     clerkId: v.string(),
     name: v.string(),
     email: v.string(),
   }).index("by_clerkId", ["clerkId"]),
 
+  // 🔵 conversations
   conversations: defineTable({
-    members: v.array(v.id("users")),
+    members: v.optional(v.array(v.id("users"))),
   }),
 
+  // 🔵 messages (✔✔ delivered + seen system)
+  messages: defineTable(v.any()),
 
- messages: defineTable({
-  conversationId: v.id("conversations"),
-  sender: v.id("users"),
-  body: v.string(),
-  createdAt: v.number(),
-  readBy: v.optional(v.array(v.id("users"))),
-}).index("by_conversation", ["conversationId"]),
 });

@@ -1,53 +1,27 @@
-import { mutation, query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// 🔵 create or get conversation
-export const createOrGetConversation = mutation({
-  args: {
-    user1: v.id("users"),
-    user2: v.id("users"),
-  },
-  handler: async (ctx, args) => {
-    // ❌ prevent self chat
-    if (args.user1.toString() === args.user2.toString()) {
-      throw new Error("Cannot create conversation with yourself");
-    }
-
-    const conversations = await ctx.db.query("conversations").take(50);
-
-    const existing = conversations.find((c) =>
-      c.members.some((m) => m.toString() === args.user1.toString()) &&
-      c.members.some((m) => m.toString() === args.user2.toString())
-    );
-
-    if (existing) {
-      return existing._id;
-    }
-
-    return await ctx.db.insert("conversations", {
-      members: [args.user1, args.user2],
-    });
-  },
-});
-
-
-// 🟢 get conversations with other user + last message + unread count
+/**
+ * 🔹 Get all conversations for logged in user
+ */
 export const getUserConversations = query({
   args: {
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    // get all conversations
     const conversations = await ctx.db.query("conversations").collect();
 
+    // filter only conversations where current user is a member
     const userConvos = conversations.filter((c) =>
-      c.members.some((m) => m.toString() === args.userId.toString())
+      (c.members ?? []).some((m) => m.toString() === args.userId.toString())
     );
 
     const results = [];
 
     for (const convo of userConvos) {
-      // 👉 find the other user
-      const otherUserId = convo.members.find(
+      // find other user in that conversation
+      const otherUserId = (convo.members ?? []).find(
         (m) => m.toString() !== args.userId.toString()
       );
 
@@ -55,27 +29,24 @@ export const getUserConversations = query({
         ? await ctx.db.get(otherUserId)
         : null;
 
-      // 👉 get all messages of this conversation
-      const messages = await ctx.db
-        .query("messages")
-        .withIndex("by_conversation", (q) =>
-          q.eq("conversationId", convo._id)
-        )
-        .collect();
+      // get last message (🟠 Temporary lax query)
+      const allMessages = await ctx.db.query("messages").collect();
+      const convoMessages = allMessages
+        .filter((m) => m.conversationId === convo._id)
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 
-      // 👉 last message
-      const lastMessage =
-        messages.length > 0 ? messages[messages.length - 1] : null;
+      const lastMessage = convoMessages[0] ?? null;
 
-      // 🔥 FIXED unread logic (uses readBy)
-      const unreadCount = messages.filter(
-        (m) =>
-          m.sender.toString() !== args.userId.toString() &&
-         !(m.readBy ?? []).includes(args.userId)
-      ).length;
+      // 🔥 unread count (🟠 Temporary lax query)
+      const unreadCount = convoMessages.filter((m) => {
+        return (
+          m.sender !== args.userId &&
+          (!m.seenBy || !m.seenBy.includes(args.userId))
+        );
+      }).length;
 
       results.push({
-        _id: convo._id,
+        ...convo,
         otherUser,
         lastMessage,
         unreadCount,
@@ -83,5 +54,37 @@ export const getUserConversations = query({
     }
 
     return results;
+  },
+});
+
+
+/**
+ * 🔹 Create or get existing conversation
+ */
+export const createOrGetConversation = mutation({
+  args: {
+    user1: v.id("users"),
+    user2: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // check if conversation already exists
+    const existing = await ctx.db.query("conversations").collect();
+
+    const found = existing.find(
+      (c) =>
+        (c.members ?? []).includes(args.user1) &&
+        (c.members ?? []).includes(args.user2)
+    );
+
+    if (found) {
+      return found._id;
+    }
+
+    // else create new conversation
+    const newConvo = await ctx.db.insert("conversations", {
+      members: [args.user1, args.user2],
+    });
+
+    return newConvo;
   },
 });

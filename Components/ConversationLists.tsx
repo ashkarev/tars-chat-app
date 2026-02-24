@@ -45,9 +45,11 @@ console.log("CURRENT USER", currentUser);
           className="p-3 border-b cursor-pointer hover:bg-gray-100 rounded flex justify-between items-center"
         >
           <div>
-            <p className="font-medium">
-              {c.otherUser?.name || c.otherUser?.email || "Unknown User"}
-            </p>
+           <p className="font-medium">
+  {c.otherUser?.name?.trim()
+    ? c.otherUser.name
+    : c.otherUser?.email || "User"}
+</p>
 
             <p className="text-sm text-gray-500 truncate w-[180px]">
               {c.lastMessage ? c.lastMessage.body : "No messages yet"}

@@ -27,8 +27,8 @@ export default function Home() {
   // 🔵 get current convex user
   const currentUser = useQuery(api.users.getCurrentUser);
 
-  // 🔵 mark messages as read
-  const markAsRead = useMutation(api.messages.markAsRead);
+  // 🔵 mark messages as seen
+  const markAsSeen = useMutation(api.messages.markAsSeen);
 
   // 🔵 sync user to convex
   const syncUser = useCallback(async () => {
@@ -45,27 +45,27 @@ export default function Home() {
     }
   }, [user, storeUser]);
 
- useEffect(() => {
-  const run = async () => {
-    if (!isLoaded || !user) return;
+  useEffect(() => {
+    const run = async () => {
+      if (!isLoaded || !user) return;
 
-    await storeUser({
-      clerkId: user.id,
-      name: user.fullName ?? "",
-      email: user.primaryEmailAddress?.emailAddress ?? "",
-    });
-  };
+      await storeUser({
+        clerkId: user.id,
+        name: user.fullName ?? "",
+        email: user.primaryEmailAddress?.emailAddress ?? "",
+      });
+    };
 
-  run();
-}, [isLoaded, user, storeUser]);
+    run();
+  }, [isLoaded, user, storeUser]);
 
   // 🔥 THIS IS THE FIX
   const handleSelectConversation = async (id: Id<"conversations">) => {
     setConversationId(id);
 
-    // mark messages as read
+    // mark messages as seen
     if (currentUser) {
-      await markAsRead({
+      await markAsSeen({
         conversationId: id,
         userId: currentUser._id,
       });
