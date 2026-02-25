@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useState, useRef, useEffect } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Avatar, IconButton } from "./UI";
+import Image from "next/image";
 
 export default function ChatBox({
   conversationId,
@@ -59,7 +60,7 @@ export default function ChatBox({
     if (currentUser && conversationId) {
       markSeen({ conversationId, userId: currentUser._id });
     }
-  }, [conversationId, currentUser]);
+  }, [conversationId, currentUser, markSeen]);
 
   if (
     messages === undefined ||
@@ -273,7 +274,7 @@ export default function ChatBox({
               hour: "2-digit",
               minute: "2-digit",
             });
-            const prevMsg: any = filteredMessages[idx - 1];
+            const prevMsg = filteredMessages[idx - 1] as { sender: string; _creationTime: number } | undefined;
             const isSequential =
               prevMsg &&
               prevMsg.sender === m.sender &&
@@ -311,12 +312,15 @@ export default function ChatBox({
                   >
                     {/* Image Render */}
                     {m.imageUrl && (
-                      <div className="mb-2 rounded-xl overflow-hidden cursor-pointer group/img shadow-sm border border-black/5">
-                        <img
+                      <div
+                        className="mb-2 rounded-xl overflow-hidden cursor-pointer group/img shadow-sm border border-black/5 relative w-64 h-48"
+                        onClick={() => window.open(m.imageUrl, "_blank")}
+                      >
+                        <Image
                           src={m.imageUrl}
                           alt="Uploaded"
-                          className="max-w-full hover:scale-105 transition-transform duration-700"
-                          onClick={() => window.open(m.imageUrl, "_blank")}
+                          fill
+                          className="object-cover hover:scale-105 transition-transform duration-700"
                         />
                       </div>
                     )}
@@ -425,7 +429,7 @@ export default function ChatBox({
                   Replying to
                 </span>
                 <p className="text-xs text-slate-500 truncate italic font-medium">
-                  "{replyingTo.body}"
+                  &quot;{replyingTo.body}&quot;
                 </p>
               </div>
               <button

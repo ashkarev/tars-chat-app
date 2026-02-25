@@ -2,10 +2,19 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/nextjs";
 import { Id } from "@/convex/_generated/dataModel";
 import { useState } from "react";
 import { Avatar, Badge } from "./UI";
+
+type Conversation = {
+  _id: Id<"conversations">;
+  isGroup: boolean;
+  name?: string;
+  members?: unknown[];
+  otherUser?: { name?: string; email?: string; imageUrl?: string; lastSeen?: number };
+  lastMessage?: { _creationTime: number; body: string; sender: Id<"users"> };
+  unreadCount: number;
+};
 
 export default function ConversationLists({
   onSelectConversation,
@@ -14,7 +23,6 @@ export default function ConversationLists({
   onSelectConversation: (id: Id<"conversations">) => void;
   selectedId?: Id<"conversations"> | null;
 }) {
-  const { user } = useUser();
   const [search, setSearch] = useState("");
 
   const currentUser = useQuery(api.users.getCurrentUser);
@@ -41,7 +49,7 @@ export default function ConversationLists({
     );
   }
 
-  const filtered = conversations?.filter((c: any) => {
+  const filtered = (conversations as Conversation[] | undefined)?.filter((c) => {
     const name = c.isGroup ? c.name : (c.otherUser?.name || c.otherUser?.email || "User");
     return name?.toLowerCase().includes(search.toLowerCase());
   });
@@ -76,7 +84,7 @@ export default function ConversationLists({
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No results</p>
           </div>
         ) : (
-          filtered.map((c: any) => {
+          filtered.map((c: Conversation) => {
             const isOnline = !c.isGroup && c.otherUser?.lastSeen && (Date.now() - c.otherUser.lastSeen < 60000);
             const time = c.lastMessage ? new Date(c.lastMessage._creationTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             const isSelected = selectedId === c._id;

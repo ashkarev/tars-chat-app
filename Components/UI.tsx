@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export function Avatar({
     src,
@@ -23,7 +24,7 @@ export function Avatar({
         <div className={`relative shrink-0 ${sizeClasses[size]} animate-in fade-in zoom-in duration-300`}>
             <div className="w-full h-full rounded-2xl bg-indigo-50 flex items-center justify-center overflow-hidden border border-indigo-100/50 transition-all hover:scale-105 group-hover:shadow-md">
                 {src ? (
-                    <img src={src} alt={name} className="w-full h-full object-cover" />
+                    <Image src={src} alt={name ?? "avatar"} fill className="object-cover" />
                 ) : (
                     <span className="font-bold text-indigo-500 uppercase">
                         {(name || "U")[0]}
