@@ -1,10 +1,9 @@
 "use client";
 
 import { UserButton, useUser, SignOutButton } from "@clerk/nextjs";
-import { IconButton } from "./UI";
 
 export default function Sidebar() {
-    const { user } = useUser();
+    useUser();
 
     return (
         <div className="w-20 bg-white flex flex-col items-center py-8 justify-between border-r border-slate-100 shadow-[2px_0_12px_rgba(0,0,0,0.02)] z-30">

@@ -31,7 +31,7 @@ export default function ChatBox({
   const [text, setText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [replyingTo, setReplyingTo] = useState<{ _id: Id<"messages">; body: string } | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,14 +42,14 @@ export default function ChatBox({
   useEffect(() => {
     if (messages && messages.length > 0 && currentUser) {
       const lastMsg = messages[messages.length - 1];
-      if ((lastMsg as any).sender !== currentUser._id) {
+      if (lastMsg && (lastMsg as unknown as { sender: Id<"users"> }).sender !== currentUser._id) {
         const audio = new Audio(
           "https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3",
         );
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
       }
     }
-  }, [messages?.length, currentUser?._id]);
+  }, [messages, currentUser, currentUser?._id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -151,11 +151,13 @@ export default function ChatBox({
     }, 1500);
   };
 
-  const filteredMessages = messages.filter((m: any) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filteredMessages = (messages as any[]).filter((m) =>
     m.body.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  const allTyping = typingUsers?.filter(
-    (t: any) => t.userId !== currentUser._id && t.isTyping,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allTyping = (typingUsers as any[])?.filter(
+    (t) => t.userId !== currentUser._id && t.isTyping,
   );
 
   return (
@@ -263,10 +265,10 @@ export default function ChatBox({
       </header>
 
       {/*  Messages Area */}
-      <div className="flex-1 overflow-y-auto px-8 py-10 space-y-8 scroll-smooth no-scrollbar">
+      <div className="flex-1  overflow-y-auto px-8 py-10 space-y-8 scroll-smooth no-scrollbar">
         <div className="flex flex-col gap-8">
-          {filteredMessages.map((m: any, idx) => {
-            const isMe = m.sender === currentUser._id;
+          {filteredMessages.map((m, idx) => {
+            const isMe = (m as { sender: Id<"users"> }).sender === currentUser._id;
             const time = new Date(m._creationTime).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -302,11 +304,10 @@ export default function ChatBox({
                   )}
 
                   <div
-                    className={`relative px-4 py-3 rounded-2xl shadow-xs transition-all duration-300 ${
-                      isMe
-                        ? "b bg-green-600  text-white rounded-tr-none hover:shadow-lg hover:shadow-indigo-200/50"
-                        : "bg-[#F1F5F9] text-slate-900 rounded-tl-none hover:bg-slate-200/50"
-                    }`}
+                    className={`relative px-4 py-3 rounded-2xl shadow-xs transition-all duration-300 ${isMe
+                      ? "b bg-indigo-500  text-white rounded-tr-none hover:shadow-lg hover:shadow-indigo-200/50"
+                      : "bg-[#F1F5F9] text-slate-900 rounded-tl-none hover:bg-slate-200/50"
+                      }`}
                   >
                     {/* Image Render */}
                     {m.imageUrl && (
@@ -496,11 +497,10 @@ export default function ChatBox({
             <button
               onClick={handleSend}
               disabled={!text.trim()}
-              className={`w-11 h-11 rounded-full transition-all flex items-center justify-center active:scale-90 shadow-lg ${
-                !text.trim()
-                  ? "bg-slate-50 text-slate-300 border border-slate-100"
-                  : "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-200 hover:saturate-150"
-              }`}
+              className={`w-11 h-11 rounded-full transition-all flex items-center justify-center active:scale-90 shadow-lg ${!text.trim()
+                ? "bg-slate-50 text-slate-300 border border-slate-100"
+                : "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-200 hover:saturate-150"
+                }`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

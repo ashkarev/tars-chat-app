@@ -5,12 +5,11 @@ import {
   SignedOut,
   SignInButton,
   SignUpButton,
-  UserButton,
   useUser,
 } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 
 import ChatBox from "@/Components/Chatbot";
@@ -155,7 +154,7 @@ export default function Home() {
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-700">
                 <div className="w-24 h-24 bg-white rounded-3xl shadow-xl shadow-slate-200/50 flex items-center justify-center mb-10 rotate-3 transition-transform hover:rotate-0">
-                  <span className="text-5xl">🪄</span>
+                  <span className="text-5xl text-sky-500 font-bold">Ready TO Start</span>
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Select a conversation</h3>
                 <p className="text-slate-400 max-w-[260px] text-sm font-medium">
