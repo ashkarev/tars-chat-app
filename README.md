@@ -110,7 +110,7 @@ npm run dev
 This project is deployed using Vercel with Convex cloud backend.
 
 👉 Live Application:
-https://YOUR-VERCEL-LINK.vercel.app
+https://tars-chat-app-95g5.vercel.app/
 
  Demo Video
 
