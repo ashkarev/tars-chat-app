@@ -123,7 +123,7 @@ Ashkar S
 
 GitHub: https://github.com/ashkarev
 
-LinkedIn: https://linkedin.com/in/YOUR-LINKEDIN
+LinkedIn: www.linkedin.com/in/ashkar-s
 
  AI Tools Used
 
