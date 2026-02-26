@@ -141,3 +141,42 @@ export const createGroup = mutation({
     });
   },
 });
+
+/**
+ *  Leave a group conversation
+ */
+export const leaveGroup = mutation({
+  args: {
+    conversationId: v.id("conversations"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const convo = await ctx.db.get(args.conversationId);
+    if (!convo) throw new Error("Conversation not found");
+    if (!convo.isGroup) throw new Error("Not a group conversation");
+
+    const userId = user._id;
+
+    // Remove user from members
+    const updatedMembers = (convo.members ?? []).filter(
+      (m: any) => m.toString() !== userId.toString()
+    );
+
+    if (updatedMembers.length === 0) {
+      await ctx.db.delete(args.conversationId);
+    } else {
+      await ctx.db.patch(args.conversationId, {
+        members: updatedMembers,
+      });
+    }
+  },
+});

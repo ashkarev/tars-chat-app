@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useState } from "react";
@@ -11,7 +11,7 @@ type Conversation = {
   isGroup: boolean;
   name?: string;
   members?: unknown[];
-  otherUser?: { name?: string; email?: string; imageUrl?: string; lastSeen?: number };
+  otherUser?: { _id: Id<"users">; name?: string; email?: string; imageUrl?: string; lastSeen?: number };
   lastMessage?: { _creationTime: number; body: string; sender: Id<"users"> };
   unreadCount: number;
 };
@@ -30,10 +30,12 @@ export default function ConversationLists({
     api.conversations.getUserConversations,
     currentUser ? { userId: currentUser._id } : "skip"
   );
+  const allUsers = useQuery(api.users.getAllUsers);
+  const createConversation = useMutation(api.conversations.createOrGetConversation);
 
   const conversations = data?.conversations;
 
-  if (!currentUser || data === undefined) {
+  if (!currentUser || data === undefined || allUsers === undefined) {
     return (
       <div className="flex flex-col gap-4 p-6 overflow-hidden">
         {[1, 2, 3, 4, 5].map((i) => (
@@ -49,10 +51,35 @@ export default function ConversationLists({
     );
   }
 
-  const filtered = (conversations as Conversation[] | undefined)?.filter((c) => {
+  const existingUserIds = new Set(
+    (conversations || []).map(c => !c.isGroup && c.otherUser?._id ? c.otherUser._id : null).filter(Boolean)
+  );
+
+  const availableUsers = (allUsers || []).filter(u => u._id !== currentUser?._id && !existingUserIds.has(u._id));
+
+  const dummyConvos: Conversation[] = availableUsers.map(u => ({
+    _id: u._id as unknown as Id<"conversations">, // Keep it as Id type to make fake conversation id
+    isGroup: false,
+    otherUser: u,
+    unreadCount: 0,
+    isDummyUser: true,
+  })) as unknown as Conversation[];
+
+  const combined = [...(conversations || []), ...dummyConvos];
+
+  const filtered = combined.filter((c) => {
     const name = c.isGroup ? c.name : (c.otherUser?.name || c.otherUser?.email || "User");
     return name?.toLowerCase().includes(search.toLowerCase());
   });
+
+  const handleUserClick = async (userId: Id<"users">) => {
+    if (!currentUser) return;
+    const convoId = await createConversation({
+      user1: currentUser._id,
+      user2: userId,
+    });
+    onSelectConversation(convoId);
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -84,15 +111,21 @@ export default function ConversationLists({
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No results</p>
           </div>
         ) : (
-          filtered.map((c: Conversation) => {
+          filtered.map((c: any) => {
             const isOnline = !c.isGroup && c.otherUser?.lastSeen && (Date.now() - c.otherUser.lastSeen < 60000);
             const time = c.lastMessage ? new Date(c.lastMessage._creationTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
-            const isSelected = selectedId === c._id;
+            const isSelected = selectedId === c._id && !c.isDummyUser;
 
             return (
               <button
-                key={c._id}
-                onClick={() => onSelectConversation(c._id)}
+                key={c._id.toString()}
+                onClick={() => {
+                  if (c.isDummyUser) {
+                    handleUserClick(c._id as unknown as Id<"users">);
+                  } else {
+                    onSelectConversation(c._id);
+                  }
+                }}
                 className={`w-full p-3.5 rounded-2xl flex items-center gap-4 transition-all duration-300 group relative border border-transparent ${isSelected
                   ? "bg-linear-to-r from-indigo-50/80 to-indigo-50 shadow-sm border-indigo-100/50"
                   : "hover:bg-slate-50/80 hover:shadow-sm"

@@ -28,6 +28,7 @@ export default function ChatBox({
   const setTyping = useMutation(api.typing.setTyping);
   const markSeen = useMutation(api.messages.markAsSeen);
   const generateUploadUrl = useMutation(api.upload.generateUploadUrl);
+  const leaveGroup = useMutation(api.conversations.leaveGroup);
 
   const [text, setText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,6 +114,13 @@ export default function ChatBox({
       isTyping: false,
     });
     setText("");
+  };
+
+  const handleLeaveGroup = async () => {
+    if (confirm("Are you sure you want to leave this group?")) {
+      await leaveGroup({ conversationId });
+      if (onBack) onBack();
+    }
   };
 
   const handleImageSend = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,6 +270,18 @@ export default function ChatBox({
               />
             </svg>
           </IconButton>
+          {conversation.isGroup && (
+            <button
+              onClick={handleLeaveGroup}
+              className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl transition-colors ml-1 border border-red-100/50 hover:shadow-sm"
+              title="Leave Group"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Leave
+            </button>
+          )}
         </div>
       </header>
 

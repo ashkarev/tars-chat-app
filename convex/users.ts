@@ -56,7 +56,10 @@ export const getCurrentUser = query({
 
 export const getAllUsers = query({
   handler: async (ctx) => {
-    return await ctx.db.query("users").collect();
+    const identity = await ctx.auth.getUserIdentity();
+    const allUsers = await ctx.db.query("users").collect();
+    if (!identity) return allUsers;
+    return allUsers.filter((u) => u.clerkId !== identity.subject);
   },
 });
 
